@@ -3,7 +3,7 @@
 Clone the repository and run `npm install`
 
 ```
-git clone https://github.com/g1153567/s381f-a.git
+git clone https://github.com/g1153567/s381f-b.git
 npm install
 npm start
 ```
