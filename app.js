@@ -308,7 +308,6 @@ MongoClient.connect(mongoUri, function (err, db) {
         authen(req, res, function () {
             let id = req.params.id
             const owner = req.session.username
-            try {
                 id = new ObjectID(id)
                 new Promise(function (resolve, reject) {
                     global.rt.find({
@@ -317,16 +316,18 @@ MongoClient.connect(mongoUri, function (err, db) {
                         resolve(data)
                     })
                 }).then(function (data) {
+            try {                
                     if (data[0].owner != owner) throw ('No Permission')
                     return global.rt.remove({
                         _id: id
                     })
+                } catch (err) {
+                    res.send(alertMsg('Failed to delete restaurant- ' + err))
+                }
                 }).then(function () {
                     res.redirect('/restaurant')
                 })
-            } catch (err) {
-                res.send(alertMsg('Failed to delete restaurant- ' + err))
-            }
+            
         })
     })
 
