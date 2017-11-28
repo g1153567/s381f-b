@@ -228,7 +228,7 @@ MongoClient.connect(mongoUri, function (err, db) {
                     [param1]: param2
                 }
                 global.rt.find(options).toArray(function (err, data) {
-                    res.send(restaurants)
+                    res.send(data)
                 })
             } catch (err) {
                 res.send('Got error in getAll')
