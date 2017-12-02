@@ -219,7 +219,6 @@ MongoClient.connect(mongoUri, function (err, db) {
 
     //api to read
     app.get(apiUrl + restaurantUrl + '/read/:param1/:param2', function (req, res) {
-        authen(req, res, function () {
             try {
                 var param1 = req.params.param1
                 var param2 = req.params.param2
@@ -233,13 +232,11 @@ MongoClient.connect(mongoUri, function (err, db) {
             } catch (err) {
                 res.send('Got error in getAll')
             }
-        })
     })
 
     app.post(apiUrl + restaurantUrl + '/create', function (req, res) {
-        authen(req, res, function () {
             new Promise(function (resolve, reject) {
-                addRtFlow(req, resolve, reject)
+                addRtFlow(req, resolve, reject,true)
             }).then((data) => {
                 res.send({
                     status: 'ok',
@@ -251,13 +248,12 @@ MongoClient.connect(mongoUri, function (err, db) {
                     message: 'Error in getting restaurants - ' + err
                 })
             })
-        })
     })
 
     app.post(restaurantUrl, function (req, res) {
         authen(req, res, function () {
             new Promise(function (resolve, reject) {
-                addRtFlow(req, resolve, reject)
+                addRtFlow(req, resolve, reject,false)
             }).then(function (data) {
                 res.redirect('/restaurant/display/' + data.ops[0]._id)
             }).catch(function (err) {
@@ -331,8 +327,8 @@ MongoClient.connect(mongoUri, function (err, db) {
         })
     })
 
-    function addRtFlow(req, resolve, reject) {
-        let formData = getFormData(req)
+    function addRtFlow(req, resolve, reject,isApi) {
+        let formData = getFormData(req,isApi)
         formData['grades'] = []
         new Promise(function (resolve, reject) {
             global.rt.find({
@@ -351,20 +347,43 @@ MongoClient.connect(mongoUri, function (err, db) {
         })
     }
 
-    function getFormData(req) {
+    function getFormData(req,isApi) {
         // const restaurant_id = req.body.restaurant_id
-        const name = req.body.name
-        const cuisine = req.body.cuisine
-        const borough = req.body.borough
-        const street = req.body.street
-        const building = req.body.building
-        const zipcode = req.body.zipcode
-        const gpsLon = req.body.longtitude
-        const gpsLat = req.body.latitude
-        // const photo = req.body.photo
-        const owner = req.session.username || 'root'
-        const errMsg = ' is not defined'
-        const photo = getPhoto(req)
+        let name = req.body.name
+        let cuisine = req.body.cuisine
+        let borough = req.body.borough
+        let street
+        let building
+        let zipcode
+        let gpsLon
+        let gpsLat
+        let owner
+        let photo
+        if (isApi) {
+            if (req.body.address) {
+                street = req.body.address.street || ''
+                building = req.body.address.building || ''
+                zipcode = req.body.address.zipcode || ''
+                gpsLon = req.body.address.coord.longtitude || ''
+                gpsLat = req.body.address.coord.latitude || ''
+            } else {
+                street = ''
+                building = ''
+                zipcode = ''
+                gpsLon = ''
+                gpsLat = ''
+            }
+            owner = req.body.owner || 'root'
+            photo = req.body.photo || {}
+        } else {
+            street = req.body.street
+            building = req.body.building
+            zipcode = req.body.zipcode
+            gpsLon = req.body.longtitude
+            gpsLat = req.body.latitude
+            owner = req.session.username || 'root'
+            photo = getPhoto(req)
+        }
         assert.notEqual(name, undefined, 'name' + errMsg)
         assert.notEqual(owner, undefined, 'owner' + errMsg)
 
